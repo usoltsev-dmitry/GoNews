@@ -10,8 +10,12 @@ func New() *Store {
 	return new(Store)
 }
 
-func (s *Store) Posts() ([]storage.Post, error) {
+func (s *Store) GetPosts() ([]storage.Post, error) {
 	return posts, nil
+}
+
+func (s *Store) AddAuthor(storage.Post) error {
+	return nil
 }
 
 func (s *Store) AddPost(storage.Post) error {
