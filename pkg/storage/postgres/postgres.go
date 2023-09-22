@@ -35,7 +35,7 @@ func (s *Storage) GetPosts() ([]storage.Post, error) {
 		   p.content,
 		   p.created_at,
 		   p.updated_at
-	FROM get_post_by_id() p;
+	FROM get_posts() p;
 	`,
 	)
 	if err != nil {
