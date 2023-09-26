@@ -26,11 +26,11 @@ func New(db storage.Interface) *API {
 
 // Регистрация обработчиков API.
 func (api *API) endpoints() {
-	api.router.HandleFunc("/posts", api.postsHandler).Methods(http.MethodGet, http.MethodOptions)
-	api.router.HandleFunc("/posts", api.addAuthorHandler).Methods(http.MethodPost, http.MethodOptions)
-	api.router.HandleFunc("/posts", api.addPostHandler).Methods(http.MethodPost, http.MethodOptions)
-	api.router.HandleFunc("/posts", api.updatePostHandler).Methods(http.MethodPut, http.MethodOptions)
-	api.router.HandleFunc("/posts", api.deletePostHandler).Methods(http.MethodDelete, http.MethodOptions)
+	api.router.HandleFunc("/GetPosts", api.getPostsHandler).Methods(http.MethodGet, http.MethodOptions)
+	api.router.HandleFunc("/AddAuthor", api.addAuthorHandler).Methods(http.MethodPost, http.MethodOptions)
+	api.router.HandleFunc("/AddPost", api.addPostHandler).Methods(http.MethodPost, http.MethodOptions)
+	api.router.HandleFunc("/UpdatePost", api.updatePostHandler).Methods(http.MethodPut, http.MethodOptions)
+	api.router.HandleFunc("/DeletePost", api.deletePostHandler).Methods(http.MethodDelete, http.MethodOptions)
 }
 
 // Получение маршрутизатора запросов.
@@ -40,7 +40,7 @@ func (api *API) Router() *mux.Router {
 }
 
 // Получение всех публикаций.
-func (api *API) postsHandler(w http.ResponseWriter, r *http.Request) {
+func (api *API) getPostsHandler(w http.ResponseWriter, r *http.Request) {
 	posts, err := api.db.GetPosts()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
