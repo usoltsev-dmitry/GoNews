@@ -1,15 +1,11 @@
-DROP TABLE IF EXISTS posts, authors;
-
-CREATE TABLE authors (
-    id BIGSERIAL PRIMARY KEY,
-    name TEXT NOT NULL
-);
+DROP TABLE IF EXISTS posts;
 
 CREATE TABLE posts (
     id BIGSERIAL PRIMARY KEY,
-    author_id BIGINT NOT NULL REFERENCES authors(id),
-    title TEXT  NOT NULL,
+    title TEXT NOT NULL,
     content TEXT NOT NULL,
-    created_at BIGINT NOT NULL DEFAULT extract(epoch from now()),
-    updated_at BIGINT NULL
+    post_time BIGINT NOT NULL,
+    link TEXT NOT NULL
 );
+
+CREATE INDEX idx_posts_post_time ON posts (post_time);

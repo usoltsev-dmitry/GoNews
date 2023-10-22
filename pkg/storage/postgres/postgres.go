@@ -13,6 +13,10 @@ type Storage struct {
 	db *pgxpool.Pool
 }
 
+func (s *Storage) Close() {
+	s.db.Close()
+}
+
 // Конструктор
 func New(constr string) (*Storage, error) {
 	db, err := pgxpool.Connect(context.Background(), constr)
@@ -25,33 +29,48 @@ func New(constr string) (*Storage, error) {
 	return &s, nil
 }
 
-// Возвращает список всех публикаций
-func (s *Storage) GetPosts() ([]storage.Post, error) {
+// Добавляет новую публикацию
+func (s *Storage) AddPost(t storage.Post) (int64, error) {
+	var id int64
+	err := s.db.QueryRow(context.Background(), `
+	SELECT add_post($1, $2, $3, $4);
+		`,
+		t.Title,
+		t.Content,
+		t.PostTime,
+		t.Link,
+	).Scan(&id)
+	return id, err
+}
+
+// Возвращает список из n публикаций
+func (s *Storage) GetPosts(n int) ([]storage.Post, error) {
 	rows, err := s.db.Query(context.Background(), `
 	SELECT p.id,
-		   p.author_id,
-		   p.author,
 		   p.title,
 		   p.content,
-		   p.created_at,
-		   p.updated_at
-	FROM get_posts() p;
+		   p.post_time,
+		   p.link
+	FROM get_posts($1) p;
 	`,
+		n,
 	)
 	if err != nil {
 		return nil, err
 	}
-	var posts []storage.Post
+
+	defer rows.Close()
+
+	posts := make([]storage.Post, 0, n) // Заранее выделяем память под 10 публикаций
+
 	for rows.Next() {
 		var t storage.Post
 		err = rows.Scan(
 			&t.ID,
-			&t.AuthorID,
-			&t.Author,
 			&t.Title,
 			&t.Content,
-			&t.Created,
-			&t.Updated,
+			&t.PostTime,
+			&t.Link,
 		)
 		if err != nil {
 			return nil, err
@@ -59,52 +78,4 @@ func (s *Storage) GetPosts() ([]storage.Post, error) {
 		posts = append(posts, t)
 	}
 	return posts, rows.Err()
-}
-
-// Добавляет нового автора и возвращает его id
-func (s *Storage) AddAuthor(t storage.Post) (int64, error) {
-	var id int64
-	err := s.db.QueryRow(context.Background(), `
-	SELECT add_author($1);
-		`,
-		t.Author,
-	).Scan(&id)
-	return id, err
-}
-
-// Добавляет новую статью и возвращает её id
-func (s *Storage) AddPost(t storage.Post) (int64, error) {
-	var id int64
-	err := s.db.QueryRow(context.Background(), `
-	SELECT add_post($1, $2, $3);
-		`,
-		t.AuthorID,
-		t.Title,
-		t.Content,
-	).Scan(&id)
-	return id, err
-}
-
-// Обновляет статью
-func (s *Storage) UpdatePost(t storage.Post) (bool, error) {
-	var is_updated bool
-	err := s.db.QueryRow(context.Background(), `
-	SELECT update_post($1, $2, $3);
-		`,
-		t.AuthorID,
-		t.Title,
-		t.Content,
-	).Scan(&is_updated)
-	return is_updated, err
-}
-
-// Удаляет статью
-func (s *Storage) DeletePost(t storage.Post) (bool, error) {
-	var is_deleted bool
-	err := s.db.QueryRow(context.Background(), `
-	SELECT delete_post($1);
-		`,
-		t.ID,
-	).Scan(&is_deleted)
-	return is_deleted, err
 }

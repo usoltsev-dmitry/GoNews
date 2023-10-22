@@ -2,25 +2,29 @@ DROP FUNCTION IF EXISTS add_post;
 
 CREATE FUNCTION add_post
 (
-    p_author_id BIGINT,
     p_title TEXT,
-    p_content TEXT
+    p_content TEXT,
+    p_post_time BIGINT,
+    p_link TEXT
 )
 RETURNS BIGINT AS $$
 
-DECLARE v_post_id BIGINT;
+DECLARE v_id BIGINT;
 
 BEGIN
     INSERT INTO posts
     (
-        author_id,
         title,
-        content
+        content,
+        post_time,
+        link
     )
-    SELECT p_author_id,
-           p_title,
-           p_content
-    RETURNING id INTO v_post_id;
-	RETURN v_post_id;
+    SELECT p_title,
+           p_content,
+           p_post_time,
+           p_link
+    RETURNING id INTO v_id;
+
+    RETURN v_id;
 END;
 $$ LANGUAGE plpgsql;

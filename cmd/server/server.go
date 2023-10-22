@@ -21,10 +21,12 @@ func main() {
 	var srv server
 
 	// Реляционная БД PostgreSQL.
-	db1, err := postgres.New("host=172.22.0.2 port=5432 user=postgres password=postgres dbname=postgres sslmode=disable")
+	db1, err := postgres.New("host=172.22.0.2 port=5432 user=postgres password=postgres dbname=gonews sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	defer db1.Close()
 
 	/*
 		// БД в памяти.

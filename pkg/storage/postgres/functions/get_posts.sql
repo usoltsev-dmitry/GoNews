@@ -1,29 +1,25 @@
 DROP FUNCTION IF EXISTS get_posts;
 
-CREATE FUNCTION get_posts()
+CREATE FUNCTION get_posts(p_limit INT)
 
 RETURNS TABLE
 (
     id BIGINT,
-    author_id BIGINT,
-    author TEXT,
     title TEXT,
     content TEXT,
-    created_at BIGINT,
-    updated_at BIGINT
+    post_time BIGINT,
+    link TEXT
 ) AS $$
 
 BEGIN
     RETURN QUERY
     SELECT p.id,
-           a.id AS author_id,
-           a.name AS author,
            p.title,
            p.content,
-           p.created_at,
-           p.updated_at
+           p.post_time,
+           p.link
     FROM posts p
-    INNER JOIN authors a
-        ON a.id = p.author_id;
+    ORDER BY p.post_time DESC
+    LIMIT p_limit;
 END;
 $$ LANGUAGE plpgsql;

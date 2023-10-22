@@ -2,13 +2,13 @@ version: '3.7'
 services:
   postgres:
     image: postgres:latest
-    container_name: postgres
+    container_name: gonews
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_DB: gonews
     ports:
-      - "5434:5434"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

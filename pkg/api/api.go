@@ -4,6 +4,7 @@ import (
 	"GoNews/pkg/storage"
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -24,13 +25,11 @@ func New(db storage.Interface) *API {
 	return &api
 }
 
-// Регистрация обработчиков API.
+// Регистрация обработчиков API
 func (api *API) endpoints() {
-	api.router.HandleFunc("/GetPosts", api.getPostsHandler).Methods(http.MethodGet, http.MethodOptions)
-	api.router.HandleFunc("/AddAuthor", api.addAuthorHandler).Methods(http.MethodPost, http.MethodOptions)
-	api.router.HandleFunc("/AddPost", api.addPostHandler).Methods(http.MethodPost, http.MethodOptions)
-	api.router.HandleFunc("/UpdatePost", api.updatePostHandler).Methods(http.MethodPut, http.MethodOptions)
-	api.router.HandleFunc("/DeletePost", api.deletePostHandler).Methods(http.MethodDelete, http.MethodOptions)
+	api.router.Use(api.HeadersMiddleware)
+	api.router.HandleFunc("/posts/{n}", api.getPostsHandler).Methods(http.MethodGet)
+	api.router.HandleFunc("/posts", api.addPostHandler).Methods(http.MethodPost)
 }
 
 // Получение маршрутизатора запросов.
@@ -39,35 +38,25 @@ func (api *API) Router() *mux.Router {
 	return api.router
 }
 
-// Получение всех публикаций.
+// Получение списка из n публикаций
 func (api *API) getPostsHandler(w http.ResponseWriter, r *http.Request) {
-	posts, err := api.db.GetPosts()
+	// Считывание параметра {n} из пути запроса.
+	s := mux.Vars(r)["n"]
+	n, err := strconv.Atoi(s)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	bytes, err := json.Marshal(posts)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Write(bytes)
-}
 
-// Добавление автора.
-func (api *API) addAuthorHandler(w http.ResponseWriter, r *http.Request) {
-	var p storage.Post
-	err := json.NewDecoder(r.Body).Decode(&p)
+	// Получение данных из БД.
+	posts, err := api.db.GetPosts(n)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, err = api.db.AddAuthor(p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
+
+	// Отправка данных клиенту в формате JSON.
+	json.NewEncoder(w).Encode(posts)
 }
 
 // Добавление публикации.
@@ -78,42 +67,20 @@ func (api *API) addPostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	_, err = api.db.AddPost(p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// Отправка клиенту статуса успешного выполнения запроса
 	w.WriteHeader(http.StatusOK)
 }
 
-// Обновление публикации.
-func (api *API) updatePostHandler(w http.ResponseWriter, r *http.Request) {
-	var p storage.Post
-	err := json.NewDecoder(r.Body).Decode(&p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	_, err = api.db.UpdatePost(p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-}
-
-// Удаление публикации.
-func (api *API) deletePostHandler(w http.ResponseWriter, r *http.Request) {
-	var p storage.Post
-	err := json.NewDecoder(r.Body).Decode(&p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	_, err = api.db.DeletePost(p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
+func (api *API) HeadersMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		next.ServeHTTP(w, r)
+	})
 }
