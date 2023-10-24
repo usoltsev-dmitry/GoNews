@@ -30,8 +30,8 @@ func New(constr string) (*Storage, error) {
 }
 
 // Добавляет новую публикацию
-func (s *Storage) AddPost(t storage.Post) (int64, error) {
-	var id int64
+func (s *Storage) AddPost(t storage.Post) (int, error) {
+	var id int
 	err := s.db.QueryRow(context.Background(), `
 	SELECT add_post($1, $2, $3, $4);
 		`,
