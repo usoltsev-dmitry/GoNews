@@ -1,16 +1,7 @@
-DROP FUNCTION IF EXISTS add_post;
+DROP PROCEDURE IF EXISTS add_posts;
 
-CREATE FUNCTION add_post
-(
-    p_title TEXT,
-    p_content TEXT,
-    p_post_time BIGINT,
-    p_link TEXT
-)
-RETURNS BIGINT AS $$
-
-DECLARE v_id BIGINT;
-
+CREATE PROCEDURE add_posts(posts_json JSONB)
+AS $$
 BEGIN
     INSERT INTO posts
     (
@@ -19,12 +10,10 @@ BEGIN
         post_time,
         link
     )
-    SELECT p_title,
-           p_content,
-           p_post_time,
-           p_link
-    RETURNING id INTO v_id;
-
-    RETURN v_id;
+    SELECT (p->>'Title')::TEXT,
+           (p->>'Content')::TEXT,
+           (p->>'PostTime')::BIGINT,
+           (p->>'Link')::TEXT
+    FROM jsonb_array_elements(posts_json) as p;
 END;
 $$ LANGUAGE plpgsql;

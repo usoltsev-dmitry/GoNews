@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 
@@ -29,18 +30,33 @@ func New(constr string) (*Storage, error) {
 	return &s, nil
 }
 
-// Добавляет новую публикацию
-func (s *Storage) AddPost(t storage.Post) (int, error) {
-	var id int
-	err := s.db.QueryRow(context.Background(), `
-	SELECT add_post($1, $2, $3, $4);
-		`,
-		t.Title,
-		t.Content,
-		t.PostTime,
-		t.Link,
-	).Scan(&id)
-	return id, err
+// Добавляет список публикаций
+func (s *Storage) AddPosts(posts []storage.Post) error {
+	tx, err := s.db.Begin(context.Background())
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback(context.Background())
+
+	// Преобразуем список публикаций в JSON
+	postsJSON, err := json.Marshal(posts)
+	if err != nil {
+		return err
+	}
+
+	// Вызываем процедуру добавления публикаций
+	_, err = tx.Exec(context.Background(), `CALL add_posts($1);`, postsJSON)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Возвращает список из n публикаций

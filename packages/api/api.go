@@ -34,10 +34,10 @@ func (api *API) Router() *mux.Router {
 func (api *API) endpoints() {
 	api.router.Use(api.HeadersMiddleware)
 	api.router.HandleFunc("/posts/{n}", api.getPostsHandler).Methods(http.MethodGet)
-	api.router.HandleFunc("/posts", api.addPostHandler).Methods(http.MethodPost)
+	api.router.HandleFunc("/posts", api.addPostsHandler).Methods(http.MethodPost)
 }
 
-// Получение списка из n публикаций
+// Обработчик получения списка из n публикаций
 func (api *API) getPostsHandler(w http.ResponseWriter, r *http.Request) {
 	// Считывание параметра {n} из пути запроса.
 	s := mux.Vars(r)["n"]
@@ -58,23 +58,23 @@ func (api *API) getPostsHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(posts)
 }
 
-// Добавление публикации
-func (api *API) addPostHandler(w http.ResponseWriter, r *http.Request) {
-	var p storage.Post
-	err := json.NewDecoder(r.Body).Decode(&p)
+// Обработчик добавление списка публикаций
+func (api *API) addPostsHandler(w http.ResponseWriter, r *http.Request) {
+	var posts []storage.Post
+	err := json.NewDecoder(r.Body).Decode(&posts)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Ошибка декодирования JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	_, err = api.db.AddPost(p)
+	err = api.db.AddPosts(posts)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Ошибка добавления публикаций: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// Отправка клиенту статуса успешного выполнения запроса
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (api *API) HeadersMiddleware(next http.Handler) http.Handler {

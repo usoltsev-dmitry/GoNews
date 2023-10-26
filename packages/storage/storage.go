@@ -12,5 +12,5 @@ type Post struct {
 // Interface задаёт контракт на работу с БД.
 type Interface interface {
 	GetPosts(n int) ([]Post, error) // Возвращает список из n публикаций
-	AddPost(Post) (int, error)      // Добавляет новую публикацию
+	AddPosts([]Post) error          // Добавляет список публикаций
 }
