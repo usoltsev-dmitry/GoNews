@@ -4,7 +4,6 @@ import (
 	"GoNews/packages/storage"
 	"GoNews/packages/storage/postgres/dbconfig"
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -52,7 +51,7 @@ func TestStorage_AddPost(t *testing.T) {
 				t: storage.Post{
 					Title:    "Effective Go",
 					Content:  "Go is a new language. Although it borrows ideas from existing languages, it has unusual properties that make effective Go programs different in character from programs written in its relatives. A straightforward translation of a C++ or Java program into Go is unlikely to produce a satisfactory result—Java programs are written in Java, not Go. On the other hand, thinking about the problem from a Go perspective could produce a successful but quite different program. In other words, to write Go well, it's important to understand its properties and idioms. It's also important to know the established conventions for programming in Go, such as naming, formatting, program construction, and so on, so that programs you write will be easy for other Go programmers to understand.",
-					PostTime: 1634847432,
+					PostTime: 1634847425,
 					Link:     "https://gonews.xyz",
 				},
 			},
@@ -66,7 +65,7 @@ func TestStorage_AddPost(t *testing.T) {
 			}
 			_, err := s.AddPost(tt.args.t)
 			if (err != nil) != tt.wantErr {
-				fmt.Printf("Storage.AddPost() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Storage.AddPost() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 		})

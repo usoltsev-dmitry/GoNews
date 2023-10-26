@@ -4,7 +4,7 @@ CREATE FUNCTION get_posts(p_limit INT)
 
 RETURNS TABLE
 (
-    id BIGINT,
+    id INT,
     title TEXT,
     content TEXT,
     post_time BIGINT,
