@@ -14,6 +14,6 @@ BEGIN
            (p->>'Content')::TEXT,
            (p->>'PostTime')::BIGINT,
            (p->>'Link')::TEXT
-    FROM jsonb_array_elements(posts_json) as p;
+    FROM jsonb_array_elements(posts_json) p;
 END;
 $$ LANGUAGE plpgsql;
