@@ -7,7 +7,7 @@ RETURNS TABLE
     id INT,
     title TEXT,
     content TEXT,
-    post_time BIGINT,
+    pubdate TIMESTAMPTZ,
     link TEXT
 ) AS $$
 
@@ -16,10 +16,10 @@ BEGIN
     SELECT p.id,
            p.title,
            p.content,
-           p.post_time,
+           p.pubdate,
            p.link
     FROM posts p
-    ORDER BY p.post_time DESC
+    ORDER BY p.pubdate DESC
     LIMIT p_limit;
 END;
 $$ LANGUAGE plpgsql;

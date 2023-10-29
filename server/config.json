@@ -1,0 +1,8 @@
+{
+   "rss":[
+      "http://static.feed.rbc.ru/rbc/logical/footer/news.rss",
+      "https://tass.ru/rss/v2.xml",
+      "https://www.sports.ru/rss/all_news.xml"
+   ],
+   "request_period": 5
+}

@@ -11,12 +11,12 @@ import (
 
 // Программный интерфейс сервера GoNews
 type API struct {
-	db     storage.Interface
+	db     *storage.DB
 	router *mux.Router
 }
 
 // Конструктор объекта API
-func New(db storage.Interface) *API {
+func New(db *storage.DB) *API {
 	api := API{
 		db: db,
 	}
@@ -35,6 +35,7 @@ func (api *API) endpoints() {
 	api.router.Use(api.HeadersMiddleware)
 	api.router.HandleFunc("/posts/{n}", api.getPostsHandler).Methods(http.MethodGet)
 	api.router.HandleFunc("/posts", api.addPostsHandler).Methods(http.MethodPost)
+	api.router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./webapp"))))
 }
 
 // Обработчик получения списка из n публикаций

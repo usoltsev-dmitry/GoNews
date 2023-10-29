@@ -7,12 +7,12 @@ BEGIN
     (
         title,
         content,
-        post_time,
+        pubdate,
         link
     )
     SELECT (p->>'Title')::TEXT,
            (p->>'Content')::TEXT,
-           (p->>'PostTime')::BIGINT,
+           (p->>'PubDate')::TIMESTAMPTZ,
            (p->>'Link')::TEXT
     FROM jsonb_array_elements(posts_json) p;
 END;

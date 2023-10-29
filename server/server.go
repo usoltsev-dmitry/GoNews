@@ -1,48 +1,80 @@
+// Сервер GoNews.
 package main
 
 import (
-	"GoNews/packages/api"
-	"GoNews/packages/storage"
-	"GoNews/packages/storage/postgres"
+	"encoding/json"
 	"log"
 	"net/http"
-	//"GoNews/pkg/storage/memdb"
+	"os"
+	"time"
+
+	"GoNews/packages/api"
+	"GoNews/packages/rss"
+	"GoNews/packages/storage"
 )
 
-// Сервер GoNews.
-type server struct {
-	db  storage.Interface
-	api *api.API
+// конфигурация приложения
+type config struct {
+	URLS   []string `json:"rss"`
+	Period int      `json:"request_period"`
 }
 
 func main() {
-	// Создаём объект сервера.
-	var srv server
+	// инициализация зависимостей приложения
+	db, err := storage.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+	api := api.New(db)
 
-	// Реляционная БД PostgreSQL.
-	db, err := postgres.New("host=172.22.0.2 port=5432 user=postgres password=postgres dbname=postgres sslmode=disable")
+	// чтение и раскодирование файла конфигурации
+	b, err := os.ReadFile("./config.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	var config config
+	err = json.Unmarshal(b, &config)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer db.Close()
+	// запуск парсинга новостей в отдельном потоке для каждой ссылки
+	chPosts := make(chan []storage.Post)
+	chErrs := make(chan error)
+	for _, url := range config.URLS {
+		go parseURL(url, db, chPosts, chErrs, config.Period)
+	}
 
-	/*
-		// БД в памяти.
-		db2 := memdb.New()
-	*/
+	// запись потока новостей в БД
+	go func() {
+		for posts := range chPosts {
+			db.AddPosts(posts)
+		}
+	}()
 
-	// Инициализируем хранилище сервера конкретной БД.
-	srv.db = db
+	// обработка потока ошибок
+	go func() {
+		for err := range chErrs {
+			log.Println("ошибка:", err)
+		}
+	}()
 
-	// Создаём объект API и регистрируем обработчики.
-	srv.api = api.New(srv.db)
+	// запуск веб-сервера с API и приложением
+	err = http.ListenAndServe(":8080", api.Router())
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
-	// Запускаем веб-сервер на порту 8080 на всех интерфейсах.
-	// Предаём серверу маршрутизатор запросов,
-	// поэтому сервер будет все запросы отправлять на маршрутизатор.
-	// Маршрутизатор будет выбирать нужный обработчик.
-	if err := http.ListenAndServe(":8080", srv.api.Router()); err != nil {
-		log.Fatal("Ошибка запуска сервера:", err)
+// Асинхронное чтение потока RSS. Раскодированные новости и ошибки пишутся в каналы.
+func parseURL(url string, db *storage.DB, posts chan<- []storage.Post, errs chan<- error, period int) {
+	for {
+		news, err := rss.Parse(url)
+		if err != nil {
+			errs <- err
+			continue
+		}
+		posts <- news
+		time.Sleep(time.Minute * time.Duration(period))
 	}
 }
