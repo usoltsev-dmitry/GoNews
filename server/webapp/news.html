@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новостной агрегатор</title>
+    <style>
+        /* Стили для блока с публикацией */
+        .post {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .post h2 {
+            margin-top: 0;
+        }
+
+        .post a {
+            display: inline-block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Новостной агрегатор</h1>
+    <div id="posts"></div>
+
+    <script>
+        async function fetchPosts() {
+            try {
+                let response = await fetch('http://localhost:8080/posts/30');
+                let data = await response.json();
+                displayPosts(data);
+            } catch (error) {
+                console.error('Error during fetch:', error);
+            }
+        }
+
+        function displayPosts(posts) {
+            const postsContainer = document.getElementById('posts');
+            let html = '';
+
+            posts.forEach(post => {
+                html += `
+                <div class="post">
+                    <h2>${post.Title}</h2>
+                    <p>${post.Content}</p>
+                    <a href="${post.Link}" target="_blank">Читать далее</a>
+                    <p>Дата публикации: ${post.PubDate}</p>
+                </div>`;
+            });
+
+            postsContainer.innerHTML = html;
+        }
+
+        fetchPosts();
+    </script>
+
+</body>
+
+</html>

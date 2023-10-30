@@ -48,6 +48,9 @@ func Parse(url string) ([]storage.Post, error) {
 	}
 	var data []storage.Post
 	for _, item := range f.Chanel.Items {
+		if item.Description == "" {
+			continue // Пропускаем публикацию, если Description пуст
+		}
 		var p storage.Post
 		p.Title = item.Title
 		p.Content = item.Description

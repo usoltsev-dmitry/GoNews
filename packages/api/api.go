@@ -32,7 +32,6 @@ func (api *API) Router() *mux.Router {
 
 // Регистрация обработчиков API
 func (api *API) endpoints() {
-	api.router.Use(api.HeadersMiddleware)
 	api.router.HandleFunc("/posts/{n}", api.getPostsHandler).Methods(http.MethodGet)
 	api.router.HandleFunc("/posts", api.addPostsHandler).Methods(http.MethodPost)
 	api.router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./webapp"))))
@@ -40,6 +39,7 @@ func (api *API) endpoints() {
 
 // Обработчик получения списка из n публикаций
 func (api *API) getPostsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	// Считывание параметра {n} из пути запроса.
 	s := mux.Vars(r)["n"]
 	n, err := strconv.Atoi(s)
@@ -76,11 +76,4 @@ func (api *API) addPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Отправка клиенту статуса успешного выполнения запроса
 	w.WriteHeader(http.StatusCreated)
-}
-
-func (api *API) HeadersMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		next.ServeHTTP(w, r)
-	})
 }

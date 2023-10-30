@@ -5,7 +5,7 @@ import (
 )
 
 func TestParse(t *testing.T) {
-	feed, err := Parse("https://habr.com/ru/rss/best/daily/?fl=ru")
+	feed, err := Parse("http://static.feed.rbc.ru/rbc/logical/footer/news.rss")
 	if err != nil {
 		t.Fatal(err)
 	}
