@@ -1,8 +1,8 @@
 {
    "rss":[
-      "https://3dnews.ru/news/rss/",
-      "https://www.ixbt.com/export/news.rss",
-      "https://www.igromania.ru/rss/news.xml"
-   ],
-   "request_period": 5
+      "http://static.feed.rbc.ru/rbc/logical/footer/news.rss",
+      "https://tass.ru/rss/v2.xml",
+      "https://74.ru/text/rss.region.xml"
+     ],
+   "request_period": 2
 }
