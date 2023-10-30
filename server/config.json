@@ -2,7 +2,7 @@
    "rss":[
       "http://static.feed.rbc.ru/rbc/logical/footer/news.rss",
       "https://tass.ru/rss/v2.xml",
-      "https://74.ru/text/rss.region.xml"
+      "https://www.mk.ru/rss/politics/index.xml"
      ],
-   "request_period": 2
+   "request_period": 5
 }
