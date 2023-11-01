@@ -83,7 +83,7 @@ func (s *DB) GetPosts(n int) ([]Post, error) {
 		return nil, err
 	}
 
-	posts := make([]Post, 0, n) // Заранее выделяем память под 10 публикаций
+	posts := make([]Post, 30, n) // Заранее выделяем память под 30 публикаций
 
 	for rows.Next() {
 		var t Post
