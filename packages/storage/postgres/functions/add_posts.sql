@@ -14,6 +14,7 @@ BEGIN
            (p->>'Content')::TEXT,
            (p->>'PubDate')::TIMESTAMPTZ,
            (p->>'Link')::TEXT
-    FROM jsonb_array_elements(posts_json) p;
+    FROM jsonb_array_elements(posts_json) p
+    ON CONFLICT (link) DO NOTHING;
 END;
 $$ LANGUAGE plpgsql;
